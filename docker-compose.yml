@@ -1,0 +1,79 @@
+version: '3.9'
+services:
+  wordpress1:
+    container_name: wordpress1
+    image: wordpress:6.1-php8.0-apache
+    restart: always
+    stdin_open: true
+    tty: true
+    environment:
+      WORDPRESS_DB_HOST: mariadb
+      WORDPRESS_DB_USER: db_user
+      WORDPRESS_DB_PASSWORD: db_user_pass
+      WORDPRESS_DB_NAME: db_name
+    volumes:
+      - wordpress_data:/var/www/html
+
+  mariadb1:
+    container_name: mariadb1
+    image: mariadb
+    restart: always
+    environment:
+      MYSQL_DATABASE: db_name
+      MYSQL_USER: db_user
+      MYSQL_PASSWORD: db_user_pass
+      MYSQL_RANDOM_ROOT_PASSWORD: 'root_pass'
+    volumes:
+      - db_data:/var/lib/mysql
+
+  wordpress2:
+    container_name: wordpress2
+    image: wordpress:6.1-php8.0-apache
+    restart: always
+    stdin_open: true
+    tty: true
+    environment:
+      WORDPRESS_DB_HOST: mariadb
+      WORDPRESS_DB_USER: db_user
+      WORDPRESS_DB_PASSWORD: db_user_pass
+      WORDPRESS_DB_NAME: db_name
+    volumes:
+      - wordpress_data2:/var/www/html
+
+  mariadb2:
+    container_name: mariadb2
+    image: mariadb
+    restart: always
+    environment:
+      MYSQL_DATABASE: db_name
+      MYSQL_USER: db_user
+      MYSQL_PASSWORD: db_user_pass
+      MYSQL_RANDOM_ROOT_PASSWORD: 'root_pass'
+    volumes:
+      - db_data2:/var/lib/mysql
+
+  nginx:
+    container_name: nginx
+    image: nginx:latest
+    # restart: unless-stopped
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./nginx/conf:/etc/nginx/conf.d
+      - ./certbot/conf:/etc/nginx/ssl
+      - ./certbot/data:/var/www/html
+
+  certbot:
+    container_name: certbot
+    image: certbot/certbot:latest
+    command: certonly --webroot --webroot-path=/var/www/html --email youremail@example.com --agree-tos --no-eff-email -d example.com -d example2.com
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/logs:/var/log/letsencrypt
+      - ./certbot/data:/var/www/html
+volumes:
+  db_data:
+  wordpress_data:
+  db_data2:
+  wordpress_data2:
